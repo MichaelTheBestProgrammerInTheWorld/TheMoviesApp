@@ -1,21 +1,27 @@
 package com.michaelmagdy.themoviesapp.view
 
 import android.content.Context
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.paging.PagedListAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.michaelmagdy.themoviesapp.R
-import kotlinx.android.synthetic.main.movie_list_item.view.*
-import kotlinx.android.synthetic.main.network_state_item.view.*
-import com.michaelmagdy.themoviesapp.util.NetworkState
 import com.michaelmagdy.themoviesapp.model.webservice.POSTER_BASE_URL
 import com.michaelmagdy.themoviesapp.model.webservice.Result
+import com.michaelmagdy.themoviesapp.util.NetworkState
+import kotlinx.android.synthetic.main.movie_list_item.view.*
+import kotlinx.android.synthetic.main.network_state_item.view.*
 
 class MoviePagedListAdapter (public val context: Context) : PagedListAdapter<Result, RecyclerView.ViewHolder>(MovieDiffCallback())  {
 
@@ -75,12 +81,35 @@ class MoviePagedListAdapter (public val context: Context) : PagedListAdapter<Res
 
                 itemView.setOnClickListener{
 
-                    Toast.makeText(itemView.context, "movie is clicked", Toast.LENGTH_LONG)
-                        .show()
-                    Log.d("poster_url", moviePosterURL)
+                    showAlertDialog(itemView.context, movie)
                 }
             }
 
+        }
+
+        fun showAlertDialog(context: Context, movie: Result?) {
+            val dialogBuilder =
+                AlertDialog.Builder(context)
+            //val layoutView: View = getLayoutInflater().inflate(layout, null)
+            val layoutView: View = LayoutInflater.from(context).inflate(R.layout.dialog_layout, null)
+            val dialogButton =
+                layoutView.findViewById<Button>(R.id.btnDialog)
+            val imageView = layoutView.findViewById<ImageView>(R.id.imageView)
+            val titleTxt = layoutView.findViewById<TextView>(R.id.textView_title)
+            val detailsTxt = layoutView.findViewById<TextView>(R.id.textView_details)
+            titleTxt.text = movie?.title
+            detailsTxt.text = movie?.overview + " " + movie?.originalLanguage + " " + movie?.releaseDate
+            val moviePosterURL = POSTER_BASE_URL + movie?.posterPath
+            Glide.with(context)
+                .load(moviePosterURL)
+                .into(imageView)
+            dialogBuilder.setView(layoutView)
+            val alertDialog = dialogBuilder.create()
+            alertDialog.window
+                ?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            alertDialog.window!!.attributes.windowAnimations = R.style.DialogAnimation
+            alertDialog.show()
+            dialogButton.setOnClickListener { alertDialog.dismiss() }
         }
 
     }
@@ -142,4 +171,5 @@ class MoviePagedListAdapter (public val context: Context) : PagedListAdapter<Res
             MOVIE_VIEW_TYPE
         }
     }
+
 }
